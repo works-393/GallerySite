@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html class="dark" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Animation Gallery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Miltonian+Tattoo&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#2e2e38",
+              "background-light": "#f7f7f7",
+              "background-dark": "#18181a",
+            },
+            fontFamily: {
+              display: ["Newsreader"],
+              gyosho: ['HGP行書体', 'serif'],
+
+               },
+            borderRadius: { DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem" },
+          },
+        },
+      };
+</script>
+<style>
+  @font-face {
+    font-family: 'HGP行書体';
+    src: local('HGP行書体');
+  }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 300,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    .card {
+  position: fixed;
+  top: 50%;             /* 画面縦中央 */
+  left: -400px;         /* 左からスライドイン */
+  transform: translateY(-50%);
+  opacity: 0;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 310px;
+  transition: left 0.8s ease, opacity 0.8s ease;
+  z-index: 999;
+}
+
+.card.show {
+  left: 10%;            /* 出す横位置 */
+  opacity: 1;
+}
+
+
+
+.card img {
+  width:280px;  /*追記*/
+  /*object-fit: cover;*/
+  height: auto; /*縦が短くてもカード全体が小さく見えにくい*/
+  border-radius: 6px;
+   /*aspect-ratio: 1/1; 写真が同じ高さになる*/
+   /*  object-fit: cover;*/
+
+}
+.card h3 {
+  text-align: center; /* テキストを中央揃え */
+  color: #330000;
+  font-size: 1rem; /* フォントサイズを1remに */
+  font-weight: bold; /* 太字に */
+  margin-top: 0.75rem; /* 画像との間に余白を追加 */
+}
+.card h4 {
+  text-align: center; /* テキストを中央揃え */
+  color: #330000;
+  font-size: 0.8rem;
+  line-height: 2; /* 行の高さを調整 */
+  margin-top: 0.25rem; /* h3との間に少し余白を追加 */
+}
+.card p {
+  color: #645064;
+  text-align: left; /* テキストを左揃え */
+  line-height: 1.5; /* 行の高さを調整 */
+  font-size: 0.75rem;
+  margin-top: 0.75rem; /* h4との間に余白を追加 */
+}
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-primary/70 dark:text-white/70">
+<div class="flex min-h-screen flex-col">
+<header class="sticky top-0 z-10 border-b border-primary/10 bg-background-light/80 px-4 py-3 backdrop-blur-sm dark:bg-background-dark/80 sm:px-6 lg:px-8">
+<!--<div class="mx-auto flex max-w-7xl items-center justify-between">-->
+<div class="mx-auto flex w-[700px] items-center justify-between">
+<div class="flex items-center gap-3">
+<svg class="h-6 w-6 text-primary dark:text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4Z" fill-rule="evenodd"></path>
+<path d="M12 6C9.1667 6 7.00001 8.1667 7.00001 11C7.00001 13.8333 9.1667 16 12 16C14.8333 16 17 13.8333 17 11C17 8.1667 14.8333 6 12 6ZM12 14C10.3432 14 9.00001 12.6568 9.00001 11C9.00001 9.34315 10.3432 8 12 8C13.6568 8 15 9.34315 15 11C15 12.6568 13.6568 14 12 14Z"></path>
+</svg>
+<h1 class="text-xl font-semibold tracking-tighter text-primary dark:text-white">Animation Gallery</h1>
+</div>
+<nav class="hidden items-center gap-6 text-sm font-medium md:flex">
+<a class="transition-colors hover:text-primary dark:hover:text-white" href="index.html">Home</a>
+<a class="transition-colors hover:text-primary dark:hover:text-white" href="#">Service</a>
+<a class="transition-colors hover:text-primary dark:hover:text-white" href="#">About</a>
+<a class="transition-colors hover:text-primary dark:hover:text-white" href="#">Contact</a>
+</nav>
+<div class="flex items-center gap-2">
+<button class="flex h-9 w-full items-center justify-center rounded-full bg-primary/5 transition-colors hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-lg">search</span>
+</button>
+<button class="flex h-9 w-full items-center justify-center rounded-full bg-primary/5 transition-colors hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-lg">person</span>
+</button>
+
+<!--<button class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/5 transition-colors hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-lg">search</span>
+</button>
+<button class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/5 transition-colors hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-lg">person</span>
+</button>
+<button class="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-primary/5 transition-colors hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-lg">menu</span>
+</button>-->
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<!--<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">-->
+<div class="mx-auto w-[700px] px-4 py-8 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 gap-1 sm:grid-cols-2 md:grid-cols-3">
+<a href="contents/manrayeye.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu1">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg3.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-lg font-semibold">Man Ray Glass Tears</span>
+  </div>
+</a>
+<a href="contents/manrayViolon.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu2">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-lg font-semibold">Man Ray <br>Le Violon d’Ingres</span>
+  </div>
+  </a>
+<a href="contents/MonnaLisa.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu3">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg2.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-lg font-semibold">Leonardo da Vinci<br>Mona Riza</span>
+  </div>
+</a>
+<a href="contents/UomoVitruviano.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu4">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-lg font-semibold">Leonardo da Vinci <br>omo vitruviano</span>
+  </div>
+</a>
+<a href="contents/nehan.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu5">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg2.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-xl font-gyosho"><<< 涅槃 >>></span>
+  </div>
+</a>
+<a href="contents/mandara.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu6">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-xl font-gyosho"><<< 両界曼荼羅 >>></span>
+  </div>
+</a>
+<a href="contents/skelton.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu7">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg2.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-xl font-gyosho"><<< 死の舞踏 >>></span>
+  </div>
+</a>
+<a href="contents/fireart.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu8">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-xl font-gyosho"><<< 花火 >>></span>
+  </div>
+</a>
+<a href="contents/peecock.html" class="group relative overflow-hidden rounded block cursor-pointer menu-container" id="menu9">
+  <div class="aspect-square w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style='background-image: url("img/mainbg3.png");'></div>
+  <div class="absolute inset-0 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white text-xl font-gyosho"><<< 孔雀 >>></span>
+  </div>
+</a>
+</div>
+</div>
+</main>
+
+</div>
+<div class="flex justify-center mt-12">
+<nav aria-label="Pagination">
+<ul class="flex items-center -space-x-px h-10 text-base">
+<li>
+<a class="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-background-dark/60 bg-background-light border border-e-0 border-background-dark/20 rounded-s-lg hover:bg-primary/20 hover:text-primary dark:bg-background-dark/80 dark:border-background-light/20 dark:text-background-light/60 dark:hover:bg-primary/30 dark:hover:text-primary" href="#">
+<span class="sr-only">Previous</span>
+<svg aria-hidden="true" class="w-3 h-3 rtl:rotate-180" fill="none" viewBox="0 0 6 10" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 1 1 5l4 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</a>
+</li>
+<li>
+<a aria-current="page" class="z-10 flex items-center justify-center px-4 h-10 leading-tight text-primary bg-primary/20 border border-primary hover:bg-primary/30 hover:text-primary-dark dark:bg-primary/30 dark:border-primary dark:text-white dark:hover:bg-primary/40" href="index.html">1</a>
+</li>
+<li>
+<a class="flex items-center justify-center px-4 h-10 leading-tight text-background-dark/60 bg-background-light border border-background-dark/20 hover:bg-primary/20 hover:text-primary dark:bg-background-dark/80 dark:border-background-light/20 dark:text-background-light/60 dark:hover:bg-primary/30 dark:hover:text-primary" href="content2.html">2</a>
+</li>
+<li>
+<a class="flex items-center justify-center px-4 h-10 leading-tight text-background-dark/60 bg-background-light border border-background-dark/20 hover:bg-primary/20 hover:text-primary dark:bg-background-dark/80 dark:border-background-light/20 dark:text-background-light/60 dark:hover:bg-primary/30 dark:hover:text-primary" href="content3.html">3</a>
+</li>
+<li>
+<a class="flex items-center justify-center px-4 h-10 leading-tight text-background-dark/60 bg-background-light border border-background-dark/20 hover:bg-primary/20 hover:text-primary dark:bg-background-dark/80 dark:border-background-light/20 dark:text-background-light/60 dark:hover:bg-primary/30 dark:hover:text-primary" href="#">...</a>
+</li>
+<li>
+<a class="flex items-center justify-center px-4 h-10 leading-tight text-background-dark/60 bg-background-light border border-background-dark/20 hover:bg-primary/20 hover:text-primary dark:bg-background-dark/80 dark:border-background-light/20 dark:text-background-light/60 dark:hover:bg-primary/30 dark:hover:text-primary" href="#">9</a>
+</li>
+<li>
+<a class="flex items-center justify-center px-4 h-10 leading-tight text-background-dark/60 bg-background-light border border-background-dark/20 rounded-e-lg hover:bg-primary/20 hover:text-primary dark:bg-background-dark/80 dark:border-background-light/20 dark:text-background-light/60 dark:hover:bg-primary/30 dark:hover:text-primary" href="#">
+<span class="sr-only">Next</span>
+<svg aria-hidden="true" class="w-3 h-3 rtl:rotate-180" fill="none" viewBox="0 0 6 10" xmlns="http://www.w3.org/2000/svg">
+<path d="m1 9 4-4-4-4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+<footer class="text-center mt-4 px-4 h-10">
+  <small>&copy; 2025 ASCCI Art. All Rights Reserved.</small></footer>
+<!--挿入画面-->
+<div class="card" id="card1">
+  <img src="images/eye.jpeg" alt="image">
+  <h3>Man Ray Glass Tears</h3>
+  <h4>1932</h4>
+  <p>Les Larmes de verre (Glass Tears) est une œuvre photographique réalisée par Man Ray en 1930...</p>
+</div> 
+<div class="card" id="card2">
+ <img src="images/Le Violon d’Ingres.jpg" alt="image">
+  <h3>Man Ray Le Violon d’Ingres</h3>
+  <h4>1924</h4>
+  <p>Le Violon d’Ingres est une photographie emblématique du surréalisme, réalisée par Man Ray en 1924</p>
+</div>
+<div class="card" id="card3">
+<img src="images/MonnaLisa.jpg" alt="image">
+  <h3>Leonardo da Vinci Mona Lisa</h3>
+  <h4>1452-1519</h4>
+  <p>The Mona Lisa is a portrait painting by Leonardo da Vinci, believed to have been started around 1503</p>
+</div>
+<div class="card" id="card4">
+  <img src="images/vitruviano.jpg" alt="image">
+  <h3>Leonardo da Vinci  Uomo vitruviano</h3>
+  <h4>1452-1519</h4>
+  <p>l Uomo Vitruviano è un disegno realizzato da Leonardo da Vinci intorno al 1490, che rappresenta le proporzioni ideali del corpo umano</p>
+</div>
+<div class="card" id="card5">
+  <img src="images/nehan.png" alt="image">
+  <h3>涅槃</h3>
+  <h4>Nirvana</h4>
+  <p>仏教でいう涅槃は、「苦しみや煩悩から完全に解放された状態である</p>
+</div>
+<div class="card" id="card6">
+  <img src="images/mandara.jpg" alt="image">
+  <h3>両界曼荼羅</h3>
+  <h4>無常観、宇宙観や精神の秩序を象徴的に視覚化</h4>
+  <p>弘仁年間(９世紀初頭)に空海(弘法大師)は唐に留学し、恵果阿闍梨から灌頂とともに両界曼荼羅の最新形を授与された。
+</p>
+</div>
+<div class="card" id="card7">
+<img src="images/deaddance.jpg" alt="image">
+  <h3>死の舞踏</h3>
+  <h4>memento mori</h4>
+  <p>死の舞踏(Danse macabre)とは、中世末期の14世紀から15世紀のヨーロッパで流布した寓話、およびそれをもとにした一連の絵画や彫刻の様式である。</p>
+</div>
+<div class="card" id="card8">
+  <img src="images/hanabi.jpg" alt="image">
+  <h3>花火</h3>
+  <h4>光と音が夜空を舞う～瞬間～</h4>
+  <p>光の粒は色彩は金属元素の発光によって生まれ、形や広がりはその構造に依る。</p>
+</div>
+<div class="card" id="card9">
+<img src="images/peec.jpg" alt="image">
+  <h3>孔雀</h3>
+  <h4>白孔雀</h4>
+  <p>白孔雀は、インドクジャクの突然変異によって白くなったインドクジャクの変種。神秘的な美しさから幸運の象徴とされ、神の使いや縁起の良い生き物として古代から日本で信じられている。</p>
+</div>
+<script>
+const menuContainers = document.querySelectorAll('.menu-container');
+menuContainers.forEach(container => {
+  const index = container.id.replace('menu', ''); // menu1 → 1
+  const card = document.getElementById(`card${index}`);
+
+  container.addEventListener('mouseenter', () => {
+    card.classList.add('show');
+  });
+  container.addEventListener('mouseleave', () => {
+    card.classList.remove('show');
+  });
+});
+
+</script>
+</body></html>
