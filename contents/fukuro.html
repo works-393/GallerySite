@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Choo Choo TRAIN</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+@font-face {
+  font-family: 'SWScrps';
+  src: url('fonts/SWScrps.ttf') format('truetype');
+}
+      body {
+        background-color: black;
+        color: azure;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block; 
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+      }
+.control-button {
+  position: absolute;
+  top: 97%; /* ボタンの縦位置を統一 */
+  transform: translateY(-50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 11;
+  pointer-events: none; /* Initially not clickable */
+}
+#reloadButton {
+  right: 5%; /* 右端から5%の位置に配置 */
+}
+#quitButton {
+  left: 5%; /* 左端から5%の位置に配置 */
+}
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <a id="reloadButton" class="control-button" href="#" onclick="location.reload(); return false;">RELOAD</a>
+    <a id="quitButton" class="control-button" href="../content2.html">QUIT</a>
+    <script>
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const closedEyeImg = new Image();
+      closedEyeImg.src = '../images/fukuro_closed_eye.png';
+
+      const openEyeImg = new Image();
+      openEyeImg.src = '../images/fukuro_open_eye.png';
+
+      const trainCount = 6; // フクロウの数
+      const rotations = new Array(trainCount).fill(0); // 各フクロウの回転角度を格納
+      const maxAngle = 30 * (Math.PI / 180); // 最大回転角度 (30度をラジアンに変換)
+      const easing = 0.2; // 動きの滑らかさ（大きいほど速く追従）
+
+      let time = 0;
+      let animationState = 'closed'; // 'closed' -> 'open_static' -> 'dancing' -> 'dancing_with_letters'
+
+      // --- 文字の舞用の設定 ---
+      const particles = [];
+      const letters = ['C', 'h', 'o', 'o', 'T','R','A','I','N']
+      let lettersAnimationStarted = false;
+
+      // --- 月のアニメーション用の設定 ---
+      const moons = [];
+      let moonAnimationIndex = 0;
+
+      // 4秒後に目を開けて静止
+      setTimeout(() => {
+        animationState = 'open_static';
+        // さらに3秒後にダンスを開始
+        setTimeout(() => {
+          animationState = 'dancing';
+          // さらに3秒後に文字の舞を開始
+          setTimeout(() => {
+            lettersAnimationStarted = true;
+            // 文字パーティクルを生成
+            letters.forEach(char => {
+              for (let i = 0; i < 10; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 50 + Math.random() * 30;
+                const speed = Math.random() * 4 + 2;
+
+                particles.push({
+                  char: char,
+                  x: canvas.width / 2 + Math.cos(angle) * radius,
+                  y: canvas.height / 2 + Math.sin(angle) * radius,
+                  vx: Math.cos(angle) * speed,
+                  vy: Math.sin(angle) * speed,
+                  alpha: 0,
+                  size: 13 + Math.random() * 16,
+                  drag: 0.95 + Math.random() * 0.03,
+                  wander: 0.2,
+                  color: "rgba(255, 204, 0, 0.8)"
+                });
+              }
+            });
+            // さらに3秒後に月のアニメーションを開始
+            setTimeout(() => {
+              setInterval(() => {
+                if (moonAnimationIndex < moons.length) moonAnimationIndex++;
+              }, 3000); // 3秒ごとに次の月を表示
+            }, 3000);
+          }, 3000);
+        }, 3000);
+      }, 4000);
+
+      // 描画関数
+      function draw() {
+        // キャンバスを黒でクリア
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const scale = 2 / 3;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        if (animationState === 'closed') {
+          // 目を閉じたフクロウを中央に描画
+          if (closedEyeImg.complete && closedEyeImg.naturalWidth > 0) {
+            const imgWidth = closedEyeImg.width * scale;
+            const imgHeight = closedEyeImg.height * scale;
+            ctx.drawImage(closedEyeImg, centerX - imgWidth / 2, centerY - imgHeight / 2, imgWidth, imgHeight);
+          }
+        } else { // 'open_static' または 'dancing'
+          // 目を開けたフクロウを描画
+          if (openEyeImg.complete && openEyeImg.naturalWidth > 0) {
+            const imgWidth = openEyeImg.width * scale;
+            const imgHeight = openEyeImg.height * scale;
+
+            if (animationState === 'open_static') {
+              // 静止状態の場合は、回転させずに1羽だけ描画
+              ctx.drawImage(openEyeImg, centerX - imgWidth / 2, centerY - imgHeight / 2, imgWidth, imgHeight);
+            } else { // 'dancing'
+              // Choo Choo TRAINアニメーションを描画
+              // 後ろのフクロウから描画 (trainCount-1 から 0 へ)
+              for (let i = trainCount - 1; i >= 0; i--) {
+                ctx.save();
+                
+                // 描画位置（回転軸）をキャンバス中央の下端に設定
+                ctx.translate(centerX, centerY + imgHeight / 2);
+                
+                // フクロウを回転
+                ctx.rotate(rotations[i]);
+                
+                // 透明度を設定（後ろほど薄くなる）
+                ctx.globalAlpha = 1 - (i * 0.12);
+
+                // 画像の回転軸が下部中央になるように描画
+                ctx.drawImage(openEyeImg, -imgWidth / 2, -imgHeight, imgWidth, imgHeight);
+                
+                ctx.restore();
+              }
+            }
+          }
+        }
+      }
+      
+      // 文字の舞を描画する関数
+      function drawLetters() {
+        if (!lettersAnimationStarted) return;
+
+        particles.forEach(p => {
+          // 文字の位置を更新
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= p.drag;
+          p.vy *= p.drag;
+          p.vx += (Math.random() - 0.5) * p.wander;
+          p.vy += (Math.random() - 0.5) * p.wander;
+          if (p.alpha < 1) p.alpha += 0.02;
+
+          // 文字を描画
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.font = `${p.size}px Noto Serif JP Black, serif`;
+          ctx.fillText(p.char, p.x, p.y);
+        });
+      }
+
+      // 月を描画する関数
+      function drawMoons() {
+        for (let i = 0; i < moonAnimationIndex && i < moons.length; i++) {
+          const moon = moons[i];
+          if (moon.img.complete && moon.img.naturalWidth > 0) {
+            // ふわっと表示（フェードイン）
+            if (moon.alpha < 1) moon.alpha += 0.02;
+            ctx.save();
+            ctx.globalAlpha = moon.alpha;
+            ctx.drawImage(moon.img, moon.x, moon.y, moon.w, moon.h);
+            ctx.restore();
+          }
+        }
+      }
+
+      // アニメーションループ
+      function animate() {
+        if (animationState === 'dancing') {
+          time += 0.03; // アニメーションの速度
+
+          // 1. 先頭のフクロウ(TRAIN 1)の角度を計算 (sin波で往復運動)
+          rotations[0] = Math.sin(time) * maxAngle;
+
+          // 2. 後ろのフクロウが前のフクロウの角度に追従する
+          for (let i = 1; i < trainCount; i++) {
+            rotations[i] += (rotations[i - 1] - rotations[i]) * easing;
+          }
+        }
+
+        draw();
+        drawMoons(); // 月を描画
+        drawLetters(); // フクロウの上に文字を描画
+        requestAnimationFrame(animate);
+      }
+
+      // ウィンドウリサイズ時にキャンバスサイズを更新
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      // --- 月の初期化処理 ---
+      function setupMoons() {
+        const moonCount = 7;
+        const radius = Math.min(canvas.width, canvas.height) * 0.625; // 円弧の半径 (0.5 * 1.25 = 0.625)
+        const arcAngle = Math.PI; // 180度
+        const startAngle = -Math.PI; // 左端から開始 (-180度)
+        const arcCenterY = canvas.height / 2 + radius * 0.4; // 円弧の中心を下にずらす
+
+        for (let i = 0; i < moonCount; i++) {
+          const img = new Image();
+          img.src = `../images/moon${i + 1}.png`;
+          const angle = startAngle + (i / (moonCount - 1)) * arcAngle;
+          const moonSize = 80;
+          
+          moons.push({
+            img: img,
+            x: canvas.width / 2 + Math.cos(angle) * radius - moonSize / 2, // X座標は変更なし
+            y: arcCenterY + Math.sin(angle) * radius - moonSize / 2,      // Y座標の中心をずらす
+            w: moonSize,
+            h: moonSize,
+            alpha: 0
+          });
+        }
+      }
+      setupMoons();
+
+      // アニメーションを開始
+      animate();
+    // 6秒後にボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    const reloadButton = document.getElementById('reloadButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+    if (reloadButton) {
+      reloadButton.style.opacity = '1';
+      reloadButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 6000);
+
+    </script>
+  </body>
+</html>

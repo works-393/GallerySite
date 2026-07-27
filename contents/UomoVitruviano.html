@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ウィトルウィウス+惑星</title>
+  <!-- リセットCSS 
+<link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+-->
+<!-- Googleフォント -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Philosopher&display=swap" rel="stylesheet">
+<!--画面幅で切り替え-->
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+  @font-face {
+  font-family: 'SWScrps';
+  src: url('fonts/SWScrps.ttf') format('truetype');
+}
+
+    body {
+      font-family:IPAMonaPGothic,Monapo,Mona,sans-serif;
+      font-size:16px;
+      line-height:18px;
+      margin: 0;
+      background: #000;
+      color:#fff;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+iframe {
+    width: 100%;
+}
+#quitButton {
+  position: absolute;
+  top: 97%;
+  left: 5%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 10;
+  pointer-events: none; /* Initially not clickable */
+}
+</style>
+</head>
+<body>
+    
+<canvas id="canvas"></canvas>
+<a id="quitButton" href="../index.html">QUIT</a>
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
+// --------------------
+// 初期化
+// --------------------
+const featherCount = 24;
+const letters = ["A", "E", "H", "I", "C", "G", "T", "R", "M", "L", "S"];
+const feathers = [];
+const particles = [];
+const planets = [];
+
+// 惑星（疑似3D対応）
+for (let i = 0; i < 10; i++) {
+  planets.push({
+    orbitRadius: 250 + i * 40,
+    orbitSpeed: 0.5,
+    delay: i * 2,
+    size: 20 + i * 0.8,
+    color: `hsl(${50 + i * 2}, 20%, 90%)`,
+    z: 0
+  });
+}
+
+// 羽根の初期化
+for (let i = 0; i < featherCount; i++) {
+  const angle = (Math.PI * 2 / featherCount) * i;
+  const distance = 300 + Math.random() * 100;
+  const targetDistance = 120 + Math.random() * 40;
+  const delay = Math.random() * 2000;
+
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "rgba(255, 255, 255, 0.9)"); 
+  gradient.addColorStop(1, "rgba(59, 74, 180, 0.8)"); 
+
+  feathers.push({
+    angle,
+    distance,
+    targetDistance,
+    progress: 0,
+    delay,
+    letter: letters[i % letters.length],
+    sway: Math.random() * 0.5 + 0.5,
+    color: gradient,
+    targetX: centerX + Math.cos(angle) * 150,
+    targetY: centerY + Math.sin(angle) * 150
+  });
+}
+
+// パーティクルの初期化
+for (let i = 0; i < 80; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    radius: Math.random() * 2 + 1,
+    speedY: Math.random() * 0.5 + 0.2,
+    alpha: Math.random() * 0.5 + 0.3
+  });
+}
+
+// 画像の準備
+const image = new Image();
+image.src = "../images/vitruviano.png";
+
+// --------------------
+// 描画関数
+// --------------------
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 200, ${p.alpha})`;
+    ctx.fill();
+    p.y -= p.speedY;
+    if (p.y < -10) {
+      p.y = canvas.height + 10;
+      p.x = Math.random() * canvas.width;
+    }
+  });
+}
+
+function drawImage() {
+  if (!image.complete) return;
+  const imgSize = 300;
+  const x = centerX;
+  const y = centerY;
+  const time = performance.now() / 1000;
+  const rotation = time * 0.5;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.drawImage(image, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
+  ctx.restore();
+}
+
+function drawFeathers() {
+  ctx.font = "20px monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  feathers.forEach(f => {
+    if (f.delay > 0) {
+      f.delay -= 16;
+      return;
+    }
+    if (f.progress < 1) f.progress += 0.005;
+    const eased = easeOutCubic(f.progress);
+    const x = f.distance * (1 - eased) * Math.cos(f.angle) + f.targetX * eased;
+    const y = f.distance * (1 - eased) * Math.sin(f.angle) + f.targetY * eased;
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.letter, x, y);
+  });
+}
+
+function drawPlanets(time) {
+  const perspective = 500;
+  planets.forEach(p => {
+    const orbitAngle = (time - p.delay) * p.orbitSpeed;
+    p.z = Math.sin(orbitAngle) * 100;
+    const scale = perspective / (perspective + p.z);
+    const x = centerX + p.orbitRadius * Math.cos(orbitAngle) * scale;
+    const y = centerY + p.orbitRadius * Math.sin(orbitAngle) * scale;
+    const size = p.size * scale;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(30 * Math.PI / 180);
+    const gradient = ctx.createRadialGradient(0, 0, 5, 0, 0, size);
+    gradient.addColorStop(0, "rgba(255,255,255,0.9)");
+    gradient.addColorStop(0.6, p.color);
+    gradient.addColorStop(1, "rgba(0,0,0,0.9)");
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+// --------------------
+// アニメーション
+// --------------------
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawParticles();
+  drawImage();
+  drawFeathers();
+  drawPlanets(performance.now() / 1000);
+  requestAnimationFrame(animate);
+}
+
+// 開始
+animate();
+// 3秒後にQUITボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 3000);
+
+</script>
+
+</body>
+</html>

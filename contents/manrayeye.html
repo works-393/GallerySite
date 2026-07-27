@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Glass Tears, 1932 by Man Ray</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+@font-face {
+  font-family: 'SWScrps';
+  src: url('fonts/SWScrps.ttf') format('truetype');
+}
+
+
+    body {
+      background-color: black;
+      color: azure;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .floating-image {
+      width: 200px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: floatDown 2s ease-out forwards;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .centered-image {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 450px;
+    }
+
+    .title {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -150%);
+      color: rgba(255, 255, 255, 0.5);
+      font-family: serif;
+      font-size: 25px;
+    }
+
+    @keyframes floatDown {
+      0% {
+        transform: translate(-50%, -80%);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+      }
+    }
+    #quitButton {
+  position: absolute;
+  top: 97%;
+  left: 5%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 10;
+  pointer-events: none; /* Initially not clickable */
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="title">Glass Tears, 1932 by Man Ray</div>
+  <img src="../images/Glass_Tears.png" alt="Glass Tears" class="centered-image">
+  <img src="../images/eye1.png" alt="eye" class="floating-image" id="floatImg0">
+  <img src="../images/eye2.png" alt="eye" class="floating-image" id="floatImg1">
+  <img src="../images/eye3.png" alt="eye" class="floating-image" id="floatImg2">
+  <img src="../images/eye4.png" alt="eye" class="floating-image" id="floatImg3">
+  <img src="../images/eye5.png" alt="eye" class="floating-image" id="floatImg4">
+  <a id="quitButton" href="../index.html">QUIT</a>
+  <script>
+    const images = [];
+    const positions = [];
+
+    for (let i = 0; i < 5; i++) {
+      images[i] = document.getElementById(`floatImg${i}`);
+      positions[i] = {
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2
+      };
+    }
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function animate() {
+      // 先頭の画像はマウスに追従
+      positions[0].x += (mouseX - positions[0].x) * 0.1;
+      positions[0].y += (mouseY - positions[0].y) * 0.1;
+
+      // 後続の画像は前の画像に追従
+      for (let i = 1; i < positions.length; i++) {
+        positions[i].x += (positions[i - 1].x - positions[i].x) * 0.1;
+        positions[i].y += (positions[i - 1].y - positions[i].y) * 0.1;
+      }
+
+      // 位置と透明度を更新
+      for (let i = 0; i < images.length; i++) {
+        images[i].style.left = positions[i].x + 'px';
+        images[i].style.top = positions[i].y + 'px';
+        images[i].style.opacity = 1 - i * 0.15;
+      }
+
+      requestAnimationFrame(animate);
+    }
+// dropping tears    
+const glassImg = document.querySelector('.centered-image');
+
+function dropTears(x, y, numTears = 4) {
+  let i = 0;
+  const dropInterval = setInterval(() => {
+    if (i >= numTears) {
+      clearInterval(dropInterval);
+      return;
+    }
+    const tear = document.createElement('img');
+    tear.src = '../images/teardrop.png';
+    tear.style.position = 'absolute';
+    tear.style.left = (x + Math.random() * 30 - 20) + 'px'; // 少しランダムにずらす
+    tear.style.top = y + 'px';
+    tear.style.width = '35px';
+    document.body.appendChild(tear);
+
+    let posY = y;
+    function fall() {
+      posY += 1 + Math.random(); // 落下スピードを遅くする
+      tear.style.top = posY + 'px';
+      if (posY < window.innerHeight) { requestAnimationFrame(fall); } else { tear.remove(); }
+    }
+    fall();
+    i++;
+  }, 300); // 300ミリ秒ごと（よりゆっくり）に1つずつ落下
+}
+
+let rightTopTriggered = false;
+let leftBottomTriggered = false;
+
+document.addEventListener('mousemove', (e) => {
+  const rect = glassImg.getBoundingClientRect();
+  const mouseX = e.clientX;
+  const mouseY = e.clientY;
+
+  // 右上 100x100
+  if (mouseX > rect.right - 100 && mouseX < rect.right && mouseY > rect.top && mouseY < rect.top + 100) {
+    if (!rightTopTriggered) {
+      dropTears(rect.right - 110, rect.top +60, 1); // 涙の数を5に変更
+      rightTopTriggered = true;
+    }
+  } else {
+    rightTopTriggered = false;
+  }
+
+  // 左下 100x100
+  if (mouseX > rect.left && mouseX < rect.left + 100 && mouseY > rect.bottom - 100 && mouseY < rect.bottom) {
+    if (!leftBottomTriggered) {
+      dropTears(rect.left + 30, rect.bottom - 100, 1); // 涙の数を5に変更
+      leftBottomTriggered = true;
+    }
+  } else {
+    leftBottomTriggered = false;
+  }
+});
+    animate();
+  // 5秒後にQUITボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 5000);
+
+  </script>
+</body>
+</html>

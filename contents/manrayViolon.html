@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Le Violon d'Ingres, 1924 by Man Ray</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+@font-face {
+  font-family: 'SWScrps';
+  src: url('fonts/SWScrps.ttf') format('truetype');
+}
+
+    body {
+      background-color: black;
+      color: azure;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .image-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 450px;
+    }
+
+    .base-image {
+      width: 100%;
+      display: block;
+    }
+
+    .title {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -150%);
+      color: rgba(255, 255, 255, 0.5);
+      font-family: serif;
+      font-size: 25px;
+    }
+
+    .f-hole {
+      position: absolute;
+      top: 60px;
+      transform: translateY(30px);
+      width: 130px; /* f字孔の画像の幅を仮で50pxに設定 */
+    }
+
+    .f-hole.left {
+      left: 105px;
+    }
+
+    .f-hole.right {
+      right: 80px;
+    }
+
+    .side-image {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 250px; /* 表示する画像の幅 */
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      pointer-events: none;
+    }
+
+    .side-image.left {
+      right: 105%; /* コンテナの左側に配置 */
+    }
+
+    .side-image.right {
+      left: 105%; /* コンテナの右側に配置 */
+    }
+  #quitButton {
+  position: absolute;
+  top: 97%;
+  left: 5%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 10;
+  pointer-events: none; /* Initially not clickable */
+}
+    
+  </style>
+</head>
+<body>
+
+  <div class="title">Le Violon d'Ingres, 1924 by Man Ray</div>
+  <div class="image-container">
+    <img src="../images/Violon.png" alt="Le Violon d'Ingres" class="base-image">
+    <img src="../images/Violon_l.png" alt="f-hole left" class="f-hole left">
+    <img src="../images/Violon_r.png" alt="f-hole right" class="f-hole right">
+    <img src="../images/Violon1.png" alt="overlay" id="overlay" class="base-image" style="position:absolute;top:0;left:0;opacity:0;pointer-events:none;">
+    <img src="../images/Violon.jpg" alt="side image left" class="side-image left">
+    <img src="../images/Violon.jpg" alt="side image right" class="side-image right">
+  </div>
+  <a id="quitButton" href="../index.html">QUIT</a>
+<script>
+const container = document.querySelector('.image-container');
+const overlay = document.getElementById('overlay');
+const leftF = document.querySelector('.f-hole.left');
+const rightF = document.querySelector('.f-hole.right');
+const sideImageLeft = document.querySelector('.side-image.left');
+const sideImageRight = document.querySelector('.side-image.right');
+
+let animationIdLeft, animationIdRight;
+
+container.addEventListener('mouseenter', () => {
+  overlay.style.opacity = 1;
+  
+  leftF.style.filter = 'blur(3px)';
+  rightF.style.filter = 'blur(3px)';
+
+  let leftPos = 0;
+  let rightPos = 0;
+  let directionLeft = 1;
+  let directionRight = -1;
+
+  // 元のCSSで translateY(30px) を使っている場合
+let startTime = null;
+
+function animateLeft(timestamp) {
+  if (!startTime) startTime = timestamp;
+  const elapsed = (timestamp - startTime) / 1000; // 秒単位に変換
+
+  const amplitude = 40; // 揺れの大きさ
+  const speed = 1;      // 揺れの速さ（小さいほどゆっくり）
+
+  const x = Math.sin(elapsed * speed) * amplitude;
+  leftF.style.transform = `translate(${x}px, 30px)`;
+
+  animationIdLeft = requestAnimationFrame(animateLeft);
+}
+
+function animateRight(timestamp) {
+  if (!startTime) startTime = timestamp;
+  const elapsed = (timestamp - startTime) / 1000;
+
+  const amplitude = 40;
+  const speed = 1;
+
+  const x = Math.sin(elapsed * speed + Math.PI) * amplitude; // 逆方向に揺れる
+  rightF.style.transform = `translate(${x}px, 30px)`;
+
+  animationIdRight = requestAnimationFrame(animateRight);
+}
+
+
+
+  animateLeft();
+  animateRight();
+});
+
+container.addEventListener('mouseenter', () => {
+  overlay.style.opacity = 1;
+
+  leftF.style.filter = 'blur(3px)';
+  rightF.style.filter = 'blur(3px)';
+
+  // サイド画像を表示
+  sideImageLeft.style.opacity = 1;
+  sideImageLeft.style.width = '150px';
+  sideImageRight.style.opacity = 1;
+  sideImageRight.style.width = '150px';
+
+  let startTime = null;
+
+  function animateLeft(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = (timestamp - startTime) / 1000;
+
+    const amplitude = 40;
+    const speed = 1;
+
+    const x = Math.sin(elapsed * speed) * amplitude;
+    leftF.style.transform = `translate(${x}px, 30px)`;
+
+    animationIdLeft = requestAnimationFrame(animateLeft);
+  }
+
+  function animateRight(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = (timestamp - startTime) / 1000;
+
+    const amplitude = 40;
+    const speed = 1;
+
+    const x = Math.sin(elapsed * speed + Math.PI) * amplitude;
+    rightF.style.transform = `translate(${x}px, 30px)`;
+
+    animationIdRight = requestAnimationFrame(animateRight);
+  }
+
+  animateLeft();
+  animateRight();
+});
+
+container.addEventListener('mouseleave', () => {
+  overlay.style.opacity = 0;
+  leftF.style.filter = 'none';
+  rightF.style.filter = 'none';
+  leftF.style.transform = 'translate(0px, 30px)';
+  rightF.style.transform = 'translate(0px, 30px)';
+
+  // サイド画像を非表示
+  sideImageLeft.style.opacity = 0;
+  sideImageLeft.style.width = '150px';
+  sideImageRight.style.opacity = 0;
+  sideImageRight.style.width = '150px';
+
+  cancelAnimationFrame(animationIdLeft);
+  cancelAnimationFrame(animationIdRight);
+});
+// 3秒後にQUITボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 3000);
+
+ 
+  </script>
+</body>
+</html>

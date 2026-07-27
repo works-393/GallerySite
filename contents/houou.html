@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>鳳凰</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+@font-face {
+  font-family: 'SWScrps';
+  src: url('fonts/SWScrps.ttf') format('truetype');
+}
+    body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+#quitButton {
+  position: absolute;
+  top: 97%;
+  left: 5%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 10;
+  pointer-events: none; /* Initially not clickable */
+}
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<a id="quitButton" href="../content2.html">QUIT</a>
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const imageZui = new Image();
+imageZui.src = '../images/zui.jpg';
+
+const imageTou = new Image();
+imageTou.src = '../images/tou.jpg';
+
+let imageHouou = new Image();
+imageHouou.src = '../images/houou.png'; // デフォルト
+
+const imageHouou2 = new Image();
+imageHouou2.src = '../images/houou2.png'; // マウスオーバー時
+
+const imageOukyu = new Image();
+imageOukyu.src = '../images/oukyu.png'; // マウスオーバー時の背景
+
+let scrollX = 0;
+const baseScrollSpeed = 0.5; // 基本のスクロール速度
+let currentScrollSpeed = baseScrollSpeed;
+
+// 鳳凰の描画領域とマウスオーバー状態を管理
+const hououRect = { x: 0, y: 0, width: 0, height: 0 };
+let isHoveringHouou = false;
+
+function loadImages() {
+  return Promise.all([
+    new Promise(resolve => { imageZui.onload = () => resolve(imageZui); }),
+    new Promise(resolve => { imageTou.onload = () => resolve(imageTou); }),
+    new Promise(resolve => { imageHouou.onload = () => resolve(imageHouou); }),
+    new Promise(resolve => { imageHouou2.onload = () => resolve(imageHouou2); }),
+    new Promise(resolve => { imageOukyu.onload = () => resolve(imageOukyu); })
+  ]);
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // --- サイズ計算 ---
+  const newHeight = canvas.height * 0.8;
+  const y = (canvas.height - newHeight) / 2;
+
+  // --- 描画 ---
+  // スクロール位置を更新
+  scrollX += currentScrollSpeed;
+
+  // マウスオーバー状態で背景とスクロール速度を変更
+  if (isHoveringHouou) {
+    currentScrollSpeed = -baseScrollSpeed; // 逆方向にスクロール
+    const oukyuNewWidth = imageOukyu.width * (newHeight / imageOukyu.height);
+    const startX = scrollX % oukyuNewWidth;
+
+    // oukyu.pngをループ描画
+    ctx.drawImage(imageOukyu, startX, y, oukyuNewWidth, newHeight);
+    ctx.drawImage(imageOukyu, startX - oukyuNewWidth, y, oukyuNewWidth, newHeight);
+    ctx.drawImage(imageOukyu, startX + oukyuNewWidth, y, oukyuNewWidth, newHeight);
+
+  } else {
+    currentScrollSpeed = baseScrollSpeed; // 通常方向にスクロール
+    const zuiNewWidth = imageZui.width * (newHeight / imageZui.height);
+    const touNewWidth = imageTou.width * (newHeight / imageTou.height);
+    const totalWidth = zuiNewWidth + touNewWidth;
+    const startX = scrollX % totalWidth;
+
+    // zui.jpgとtou.jpgをループ描画
+    ctx.drawImage(imageTou, startX, y, touNewWidth, newHeight);
+    ctx.drawImage(imageZui, startX + touNewWidth, y, zuiNewWidth, newHeight);
+    ctx.drawImage(imageTou, startX - totalWidth, y, touNewWidth, newHeight);
+    ctx.drawImage(imageZui, startX - totalWidth + touNewWidth, y, zuiNewWidth, newHeight);
+  }
+
+  // 上空に鳳凰を配置
+  hououRect.width = 210;
+  const currentHououImage = isHoveringHouou ? imageHouou2 : imageHouou;
+  hououRect.height = currentHououImage.height * (hououRect.width / currentHououImage.width);
+  hououRect.x = (canvas.width - hououRect.width) / 2;
+  hououRect.y = 50;
+
+  ctx.drawImage(currentHououImage, hououRect.x, hououRect.y, hououRect.width, hououRect.height);
+
+  requestAnimationFrame(animate);
+}
+
+// マウスイベントのリスナーを追加
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  // マウスカーソルが鳳凰の矩形内にあるかチェック
+  if (
+    mouseX >= hououRect.x &&
+    mouseX <= hououRect.x + hououRect.width &&
+    mouseY >= hououRect.y &&
+    mouseY <= hououRect.y + hououRect.height
+  ) {
+    isHoveringHouou = true;
+  } else {
+    isHoveringHouou = false;
+  }
+});
+
+loadImages().then(animate);
+// 3秒後にQUITボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 3000);
+
+</script>
+</body>
+</html>

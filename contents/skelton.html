@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Dance of Death</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+@font-face {
+  font-family: 'SWScrps';
+  src: url('fonts/SWScrps.ttf') format('truetype');
+}
+    body {
+      background-color: black;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .title {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -150%);
+      color: rgba(255, 255, 255, 0.5);
+      font-family: serif;
+      font-size: 25px;
+    }
+
+    .buttons {
+      position: absolute;
+      top: 25%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2; /* canvasより手前に表示してクリックできるようにする */
+    }
+
+    .buttons button {
+      margin: 0 5px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: azure;
+      cursor: pointer; /* マウスオーバーでカーソルを手の形にする */
+    }
+
+    .buttons button:hover {
+      background: rgba(105, 105, 105, 0.7); /* マウスオーバーで濃いグレーに */
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1; /* 詩を前面に */
+    }
+
+    .skeleton-image {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 150px;
+      height: auto;
+      opacity: 0; /* 初期状態は非表示 */
+      transition: opacity 1s ease-in-out; /* 1秒かけてフェードイン */
+      z-index: 0; /* canvasより後ろ */
+    }
+    #skeleton-left {
+      left: 100px; /* 左端からの距離 */
+    }
+    #skeleton-right {
+      right: 100px; /* 右端からの距離 */
+    }
+  #quitButton {
+  position: absolute;
+  top: 97%;
+  left: 5%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 10;
+  pointer-events: none; /* Initially not clickable */
+} 
+    
+  </style>
+</head>
+<body>
+  <div class="title">Dance of Death</div>
+  <div class="buttons">
+    <button onclick="startPoem(0)">第１章</button>
+    <button onclick="startPoem(1)">第２章</button>
+    <button onclick="startPoem(2)">第３章</button>
+  </div>
+<a id="quitButton" href="../index.html">QUIT</a>
+  <!-- 骸骨ダンス用の画像 -->
+  <img id="skeleton-left" class="skeleton-image">
+  <img id="skeleton-right" class="skeleton-image">
+
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const centerX = canvas.width / 2;
+    //const centerY = canvas.height / 2 - 100;
+    const centerY = canvas.height / 2 - 100 + 15; // -100 を -85 にするのと同じ
+
+    const poems = [
+      [
+        "燭台の影が揺れ、荒れ果てた石畳に長い影を落とす。",
+        "誰も奏でぬはずの音楽が、どこからともなく忍び寄り、",
+        "骨ばった指先に舞踏のリズムを刻ませる。",
+        "腐敗の匂いと甘美な旋律が絡み合い、聖と俗の境界はすでに溶け去った。",
+        "王も乞食も、娼婦も聖職者も、皆ひとしく骸の仮面をかぶり、",
+        "足をもつれさせながら輪を描く。",
+        "その円舞は祝祭か、それとも嘲笑か。",
+        "ただひとつ確かなのは、彼らの足音が永遠に終わらぬこと。",
+        "夜明けの訪れはなく、舞踏の幕も下りることはない。"
+      ],
+      [
+        "黒大理石の床に映る燭火は、血の滴のように妖しく揺れていた。",
+        "無音のはずの大広間に、どこからともなく低い旋律が流れ込み、骸骨の指が優雅に拍を刻む。",
+        "白い喪衣に包まれた者も、宝石を散りばめた王冠を戴く者も、等しく死の面影に引き寄せられ、",
+        "痩せ細った腕を絡め合う。",
+        "その舞は嘆きか、陶酔か。",
+        "崩れ落ちる肉体すらも美と見なされ、腐敗の香りは甘い香水のように漂う。",
+        "夜は終わらず、ただ虚無の祝祭だけが果てしなく続いていく。"
+      ],
+      [
+        "(David Bowie風)",
+        "ネオンの影が瓦礫の舞踏場を染め、ガラスの靴は血に濡れて光っていた。",
+        "スケルトンの貴族はシルクハットを傾け、酔った修道女とステップを踏む。",
+        "破れたカーテンの向こうで、月がスポットライトのように嗤っている。",
+        "この曲は誰が奏でている？  ラジオもないのに、リフレインは止まらない。",
+        "やがて観客も踊り手も見境なく渦に飲まれ、崩れ落ちる瞬間こそが最高のポーズだ。",
+        "甘美な腐敗、きらめく終焉、これは滅びのファッションショー。"
+      ]
+    ];
+
+    let currentPoem = [];
+    let poemProgress = 0;
+    let showPoem = false;
+    let intervalId;
+
+    // --- 骸骨ダンスのアニメーション ---
+    const skeletonLeft = document.getElementById('skeleton-left');
+    const skeletonRight = document.getElementById('skeleton-right');
+    let skeletonAnimationStarted = false;
+
+    function startSkeletonAnimation() {
+      if (skeletonAnimationStarted) return; // アニメーションのセットアップは一度だけ
+      skeletonAnimationStarted = true;
+
+      // 初期画像を設定
+      skeletonLeft.src = '../images/skelton1.jpg';
+      skeletonRight.src = '../images/skelton1.jpg';
+
+      // 0.25秒ごとに画像を交互に切り替え
+      let isSkel1 = true;
+      setInterval(() => {
+        isSkel1 = !isSkel1;
+        const newSrc = isSkel1 ? '../images/skelton1.jpg' : '../images/skelton2.jpg';
+        skeletonLeft.src = newSrc;
+        skeletonRight.src = newSrc;
+      }, 250);
+    }
+
+    function drawPoem() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "16px serif";
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.textAlign = "center";
+      
+
+      for (let i = 0; i < poemProgress && i < currentPoem.length; i++) {
+        ctx.fillText(currentPoem[i], centerX, centerY + 40 * i);
+      }
+    }
+
+    function startPoem(index) {
+      currentPoem = poems[index];
+      poemProgress = 0;
+      showPoem = true;
+      clearInterval(intervalId);
+
+      // 骸骨をフェードインさせて表示
+      skeletonLeft.style.opacity = 1;
+      skeletonRight.style.opacity = 1;
+      startSkeletonAnimation(); // 骸骨のアニメーションを開始
+
+      intervalId = setInterval(() => {
+        poemProgress++;
+        if (poemProgress > currentPoem.length) {
+          clearInterval(intervalId);
+        }
+        drawPoem();
+      }, 1500); // 1.5秒ごとに1行表示
+    }
+  // 15秒後にQUITボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 15000);
+
+  </script>
+</body>
+</html>

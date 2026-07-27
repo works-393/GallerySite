@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>両界曼荼羅</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Philosopher&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+  @font-face {
+    font-family: 'SWScrps';
+    src: url('fonts/SWScrps.ttf') format('truetype');
+  }
+  body {
+    margin: 0;
+    background: #000;
+    overflow: hidden;
+  }
+  canvas { display: block; }
+  #quitButton {
+  position: absolute;
+  top: 97%;
+  left: 5%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 10;
+  pointer-events: none; /* Initially not clickable */
+}
+
+</style>
+
+<canvas id="canvas"></canvas>
+<a id="quitButton" href="../index.html">QUIT</a>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
+const image = new Image();
+image.src = '../images/mandara1.png';
+
+// --- 1. パーティクル（✦ と ✧）の設定 ---
+const particles = [];
+const particleCount = 80; // 合計80個 (各位置20個 * 4箇所)
+const particleChars = ['✦', '✧'];
+const particlePositions = [
+  { x: -150, y: -150 }, // 左上
+  { x: 150, y: -150 }, // 右上
+  { x: -150, y: 150 }, // 左下
+  { x: 150, y: 150 }  // 右下
+];
+
+for (const pos of particlePositions) {
+  for (let i = 0; i < particleCount / 4; i++) {
+    particles.push({
+      char: particleChars[Math.floor(Math.random() * particleChars.length)],
+      x: centerX + pos.x + (Math.random() - 0.5) * 100,
+      y: centerY + pos.y + (Math.random() - 0.5) * 100,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: (Math.random() - 0.5) * 0.2,
+      alpha: 0, // 初期透明度は0
+      targetAlpha: Math.random() * 0.5 + 0.3, // 目標の透明度
+      fontSize: 10 + Math.random() * 10
+    });
+  }
+}
+let showParticles = false;
+
+
+const baseWidth = 100;
+const baseHeight = 100;
+
+// グループを管理する配列
+const groups = [];
+
+// 1グループ（中央＋上下左右）を生成する関数
+function createGroup(groupCenterX, groupCenterY, scale=1) {
+  const images = [];
+  const moveDistance = 60 * scale;
+
+  for (let i = 0; i < 5; i++) {
+    let targetX = groupCenterX;
+    let targetY = groupCenterY;
+
+    // 1つ目(i=0)は中央、2-5つ目(i=1-4)は上下左右に配置
+    if (i === 1) targetY -= moveDistance; // 上
+    if (i === 2) targetY += moveDistance; // 下
+    if (i === 3) targetX -= moveDistance; // 左
+    if (i === 4) targetX += moveDistance; // 右
+
+    images.push({
+      x: groupCenterX, // 初期位置はグループの中心
+      y: groupCenterY,
+      targetX: targetX,
+      targetY: targetY,
+      alpha: 0, // 初期透明度
+      delay: i * 30, // 1つずつ遅れて動き出すための遅延
+      scale
+    });
+  }
+  return { images: images, isMoving: true, isVisible: false, finished: false };
+}
+
+// === A: 中央の3グループ ===
+const A = [];
+const groupSpacing = 250; // グループ間の距離
+A.push(createGroup(centerX, centerY, 1)); // 中央
+A.push(createGroup(centerX - groupSpacing, centerY, 1)); // 左
+A.push(createGroup(centerX + groupSpacing, centerY, 1)); // 右
+
+groups.push(...A);
+A[0].isVisible = true; // 最初は中央のグループだけ表示
+
+// === B, C: 上下の縮小グループ ===
+const vOffset = 250; // 縦のオフセット
+const hOffset = 250; // 横のオフセット
+const scale = 0.5;
+
+// 上段（左の塊）
+const B = [
+  createGroup(centerX - hOffset, centerY - vOffset, scale),
+  createGroup(centerX - hOffset - (groupSpacing * scale), centerY - vOffset, scale),
+  createGroup(centerX - hOffset + (groupSpacing * scale), centerY - vOffset, scale)
+];
+// 上段（右の塊）
+const C = [
+  createGroup(centerX + hOffset, centerY - vOffset, scale),
+  createGroup(centerX + hOffset - (groupSpacing * scale), centerY - vOffset, scale),
+  createGroup(centerX + hOffset + (groupSpacing * scale), centerY - vOffset, scale)
+];
+// 下段（左の塊）
+const D = [
+  createGroup(centerX - hOffset, centerY + vOffset, scale),
+  createGroup(centerX - hOffset - (groupSpacing * scale), centerY + vOffset, scale),
+  createGroup(centerX - hOffset + (groupSpacing * scale), centerY + vOffset, scale)
+];
+// 下段（右の塊）
+const E = [
+  createGroup(centerX + hOffset, centerY + vOffset, scale),
+  createGroup(centerX + hOffset - (groupSpacing * scale), centerY + vOffset, scale),
+  createGroup(centerX + hOffset + (groupSpacing * scale), centerY + vOffset, scale)
+];
+
+groups.push(...B, ...C, ...D, ...E);
+
+// --- 2. 文字の設定 ---
+const textObjects = [];
+const textDefs = [
+  { char: '慈', group: B[0] },
+  { char: '智', group: C[0] },
+  { char: '大', group: A[0] },
+  { char: '行', group: D[0] },
+  { char: '覚', group: E[0] }
+];
+
+textDefs.forEach(def => {
+  textObjects.push({
+    char: def.char,
+    x: def.group.images[0].targetX, // グループの中央画像の目標X
+    y: def.group.images[0].targetY - 80 * def.group.images[0].scale, // 中央画像の少し上
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    alpha: 0,
+    fontSize: 50
+  });
+});
+let showTexts = false;
+
+function drawParticles() {
+  if (!showParticles) return;
+
+  particles.forEach(p => {
+    // フェードイン
+    if (p.alpha < p.targetAlpha) {
+      p.alpha += 0.01;
+    }
+    p.x += p.vx;
+    p.y += p.vy;
+    if (Math.random() < 0.01) {
+        p.vx = (Math.random() - 0.5) * 0.2;
+        p.vy = (Math.random() - 0.5) * 0.2;
+    }
+    ctx.font = `${p.fontSize}px serif`;
+    ctx.fillStyle = `rgba(220, 220, 220, ${p.alpha})`;
+    ctx.fillText(p.char, p.x, p.y);
+  });
+}
+
+function drawTexts() {
+  if (!showTexts) return;
+
+  textObjects.forEach(t => {
+    // フェードイン
+    if (t.alpha < 1) {
+      t.alpha += 0.01;
+    }
+
+    // 漂う動き
+    t.x += t.vx;
+    t.y += t.vy;
+
+    // 動きをランダムに変化させる
+    if (Math.random() < 0.01) {
+      t.vx = (Math.random() - 0.5) * 0.3;
+      t.vy = (Math.random() - 0.5) * 0.3;
+    }
+
+    ctx.font = `${t.fontSize}px 'HGP行書体', 'HG行書体', serif`;
+    ctx.fillStyle = `rgba(255, 255, 255, ${t.alpha * 0.5})`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(t.char, t.x, t.y);
+  });
+}
+
+function drawGroups() {
+  groups.forEach(group => {
+    if (!group.isVisible) return;
+
+    let groupIsCurrentlyMoving = false;
+    group.images.forEach(imgObj => {
+      // 遅延処理
+      if (imgObj.delay > 0) {
+        imgObj.delay--;
+        groupIsCurrentlyMoving = true;
+        return;
+      }
+
+      // イージングで目標位置にゆっくり移動
+      const ease = 0.01;
+      const dx = imgObj.targetX - imgObj.x;
+      const dy = imgObj.targetY - imgObj.y;
+      imgObj.x += dx * ease;
+      imgObj.y += dy * ease;
+
+      // フェードイン
+      if (imgObj.alpha < 1) {
+        imgObj.alpha += 0.01;
+      }
+
+      // まだ動いているか判定
+      if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+        groupIsCurrentlyMoving = true;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = imgObj.alpha;
+      ctx.drawImage(
+        image,
+        imgObj.x - (baseWidth * imgObj.scale) / 2,
+        imgObj.y - (baseHeight * imgObj.scale) / 2,
+        baseWidth * imgObj.scale,
+        baseHeight * imgObj.scale
+      );
+      ctx.restore();
+    });
+    group.isMoving = groupIsCurrentlyMoving;
+    if (!group.isMoving && !group.finished) {
+      group.finished = true;
+    }
+  });
+
+  // 中央のグループが終わりかけたら左右のグループを表示
+  if (A[0].isVisible && !A[1].isVisible) {
+    const lastImageOfCenterGroup = A[0].images[4];
+    if (lastImageOfCenterGroup.delay <= 0) {
+      A[1].isVisible = true;
+      A[2].isVisible = true;
+    }
+  }
+
+  // A（中央＋左右）の最後の動きが止まる直前に B,C を出す
+  if (A[1].finished && A[2].finished && !B[0].isVisible) {
+    showParticles = true; // ここでパーティクル表示を開始
+    [...B, ...C, ...D, ...E].forEach(g => g.isVisible = true);
+  }
+
+  // すべてのグループの展開が終わったら文字を表示
+  const allGroupsFinished = groups.every(g => g.finished);
+  if (allGroupsFinished && !showTexts) {
+    showTexts = true;
+  }
+}
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawParticles(); // パーティクルを描画
+
+  if (image.complete) { // 画像が読み込まれてから描画を開始
+    drawGroups();
+  }
+
+  drawTexts(); // 文字を描画
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+// 30秒後にQUITボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 30000);
+
+</script>
+</body>
+</html>

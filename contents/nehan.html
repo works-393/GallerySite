@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>涅槃</title>
+  <!-- リセットCSS 
+<link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+-->
+<!-- Googleフォント -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Philosopher&display=swap" rel="stylesheet">
+<!--画面幅で切り替え-->
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    @font-face {
+  font-family: 'SWScrps';
+  src: url('fonts/SWScrps.ttf') format('truetype');
+}
+    body {
+      font-family:IPAMonaPGothic,Monapo,Mona,sans-serif;
+      font-size:16px;
+      line-height:18px;
+      margin: 0;
+      background: #000;
+      color:#fff;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+    #quitButton {
+  position: absolute;
+  top: 97%;
+  left: 5%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 10;
+  pointer-events: none; /* Initially not clickable */
+}
+  </style>
+</head>
+<body>
+  <a id="quitButton" href="../index.html">QUIT</a>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
+const poemLines = [ // 詩の各行を配列として保持
+  "涅槃", // 0
+  "沙羅双樹の花 時を得て散り落つ", // 1
+  "仏 右脇を下に安らかに臥したまひて", // 2
+  "その御顔", // 3
+  "微笑をたたへ 苦悩の色さらにあらず",  // 3
+  "弟子ら 声を挙げて慟哭すといへども", // 5
+  "大師のまなざしは 既に生死を超え", // 6
+  "常ならぬ世を離れたる静けさに満てり" // 7
+];
+
+// --- 背景画像の設定 ---
+const imageObjects = [];
+const imageCount = 8;
+const baseImageDelay = 120; // 画像が1枚ずつ現れる間隔 (フレーム)
+
+for (let i = 1; i <= imageCount; i++) {
+  const img = new Image();
+  // nehan07.png を最初に表示するためのインデックス操作
+  const index = i === 1 ? 7 : (i <= 7 ? i - 1 : 10);
+  img.src = `../images/nehan${String(index).padStart(2, '0')}.png`;
+
+  imageObjects.push({
+    img: img,
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    alpha: 0,
+    rotation: 0,
+    scale: 0.8 + Math.random() * 0.4, // サイズをランダムに
+    rotationSpeed: (Math.random() - 0.5) * 0.02, // 回転速度と向きをランダムに
+    delay: (i - 1) * baseImageDelay // 順番に表示するための遅延
+  });
+}
+
+let poemObjects = [];
+const baseFontSize = 20; // 基本の文字サイズ
+const charSpacingRatio = 1.2; // 文字サイズに対する文字間隔の比率
+const baseEndY = 80; // 基本の停止Y座標
+
+// 右端から配置するための開始X座標
+const totalLines = poemLines.length;
+const lineSpacing = 120; // 行間を広げました
+const totalWidth = (totalLines - 1) * lineSpacing;
+const startX = canvas.width / 2 + totalWidth / 2 - 50;
+
+// 詩の各行をオブジェクトとして初期化
+for (let i = 0; i < poemLines.length; i++) {
+  const targetY = (i === 0) ? baseEndY + 60 : baseEndY; // 「涅槃」の行を下にずらす
+  poemObjects.push({
+    line: poemLines[i],
+    fontSize: (i === 0) ? 42 : baseFontSize, // 「涅槃」のフォントサイズを大きく
+    x: startX - i * lineSpacing, // 右から左へ配置
+    y: targetY, // Y座標は固定
+    alpha: 0, // 初期透明度
+    blur: 20, // 初期ぼかし強度
+    delay: i * 60 // 1行ずつ遅れて表示するための遅延 (60フレーム * i)
+  });
+}
+
+function drawBackgroundImages() {
+  imageObjects.forEach(imgObj => {
+    // 遅延処理
+    if (imgObj.delay > 0) {
+      imgObj.delay--;
+      return;
+    }
+
+    // フェードイン
+    if (imgObj.alpha < 1) {
+      imgObj.alpha += 0.01;
+    }
+
+    // 回転
+    imgObj.rotation += imgObj.rotationSpeed;
+
+    ctx.save();
+    ctx.globalAlpha = imgObj.alpha * 0.4; // 少し透明にする
+    ctx.translate(imgObj.x, imgObj.y);
+    ctx.rotate(imgObj.rotation);
+    ctx.scale(imgObj.scale, imgObj.scale);
+    ctx.drawImage(imgObj.img, -imgObj.img.width / 2, -imgObj.img.height / 2);
+    ctx.restore();
+  });
+}
+
+function drawPoem() {
+  ctx.textAlign = "center"; // 文字を中央揃えに
+  
+  poemObjects.forEach(lineObj => {
+    // 遅延処理
+    if (lineObj.delay > 0) {
+      lineObj.delay--;
+      return;
+    }
+
+    // フェードインとぼかし解除
+    if (lineObj.alpha < 1) lineObj.alpha += 0.005; // フェードインをゆっくりに
+    if (lineObj.blur > 0) lineObj.blur -= 0.1; // ぼかし解除をゆっくりに
+
+    ctx.filter = `blur(${lineObj.blur}px)`; // ぼかしフィルタを適用
+    ctx.font = `${lineObj.fontSize}px 'HGP行書体', 'HG行書体', serif`; // オブジェクトごとにフォントサイズを設定
+    ctx.fillStyle = `rgba(200, 200, 200, ${lineObj.alpha})`; // 少しグレーがかった色に変更
+    // 各行の文字を縦に描画
+    for (let i = 0; i < lineObj.line.length; i++) {
+      const spacing = lineObj.fontSize * charSpacingRatio;
+      ctx.fillText(lineObj.line[i], lineObj.x, lineObj.y + i * spacing);
+    }
+  });
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBackgroundImages(); // 背景画像を描画
+  drawPoem();
+  ctx.filter = 'none'; // 他の描画に影響しないようにフィルタをリセット
+  requestAnimationFrame(animate);
+}
+
+animate();
+// 10秒後にQUITボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 10000);
+
+</script>
+</body>
+</html>

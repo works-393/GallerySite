@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>孔雀の羽根アニメーション</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    @font-face {
+  font-family: 'SWScrps';
+  src: url('fonts/SWScrps.ttf') format('truetype');
+}
+
+    html {
+      overflow: hidden;
+    }
+    body {
+      margin: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .peacock-container {
+      position: relative;
+      /* コンテナのサイズは必要に応じて調整してください */
+      width: 800px; 
+      height: 600px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .peacock-body {
+      position: absolute;
+      /* 体の画像を羽より手前に表示 */
+      z-index: 100; 
+    }
+    #pee2 {
+      /* 少し下にずらした体 */
+      transform: translateY(40px);
+      max-width:120px;
+    }
+    .wing1 {
+      position: absolute;
+      /* 羽の回転軸を画像の中心下部に設定 */
+      left: 50%;
+      top: 40%;
+      transform-origin: center 390px; /* 羽根がより外側に広がるように回転軸を調整 */
+      /* アニメーションを滑らかに */
+      transition: transform 1.5s ease-out;
+      /* 羽を体の後ろに表示 */
+      z-index: 5; 
+    }
+    .wing2 {
+      position: absolute;
+      /* 羽の回転軸を画像の中心下部に設定 */
+      left: 50%;
+      top: 50%;
+      transform-origin: center 290px; /* 羽根がより外側に広がるように回転軸を調整 */
+      /* アニメーションを滑らかに */
+      transition: transform 1.5s ease-out;
+      /* 羽を体の後ろに表示 */
+      z-index: 5; 
+    }
+    
+    .wing3 {
+      position: absolute;
+      /* 羽の回転軸を画像の中心下部に設定 */
+      left: 50%;
+      top: 58%;
+      transform-origin: center 190px; /* 羽根がより内側に広がるように回転軸を調整 */
+      /* アニメーションを滑らかに */
+      transition: transform 1.5s ease-out;
+      /* 羽を体の後ろに表示 */
+      z-index: 5; 
+    }
+    #text-feathers {
+      position: absolute;
+      width: 800px; /* コンテナに合わせる */
+      height: 800px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 50; /* 画像の羽根と体の間に表示 */
+      pointer-events: none; /* 下の要素をクリックできるように */
+    }
+    text {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 20px;
+      fill: #fff;
+      text-anchor: middle;
+      opacity: 0; /* 初期状態は透明 */
+      /* アニメーションをCSSで定義 */
+      animation-fill-mode: forwards; /* アニメーション終了後もスタイルを維持 */
+    }
+
+    .text-feather-animate {
+      animation-name: spread-feather;
+      animation-duration: 2.5s; /* アニメーション時間 */
+      animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1); /* ease-out-cubic */
+    }
+
+    @keyframes spread-feather {
+      from {
+        transform: translate(var(--start-x), var(--start-y));
+        opacity: 0;
+      }
+      to {
+        transform: translate(var(--target-x), var(--target-y));
+        opacity: 1;
+      }
+    }
+  @keyframes float-feather {
+  0% {
+    transform: translate(var(--target-x), var(--target-y)) rotate(0deg);
+  }
+  50% {
+    transform: translate(calc(var(--target-x) + 10px), calc(var(--target-y) - 20px)) rotate(5deg);
+  }
+  100% {
+    transform: translate(var(--target-x), var(--target-y)) rotate(0deg);
+  }
+}
+
+.text-feather-animate {
+  animation-name: spread-feather, float-feather;
+  animation-duration: 2.5s, 4s;
+  animation-delay: 0s, 2.5s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out, ease-in-out;
+  animation-iteration-count: 1, infinite;
+}
+
+    .floating-text {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 20px;
+      fill: #fff;
+      text-anchor: middle;
+      opacity: 0; /* 初期状態は透明 */
+    }
+
+    .floating-text.animate {
+      animation-name: float-around;
+      animation-fill-mode: forwards;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+
+    .floating-text.hidden {
+      opacity: 0;
+    }
+
+    @keyframes float-around {
+      0% {
+        transform: translate(var(--start-x), var(--start-y));
+        opacity: 0;
+      }
+      20%, 80% {
+        opacity: var(--max-opacity);
+      }
+      100% {
+        transform: translate(var(--end-x), var(--end-y));
+        opacity: 0;
+      }
+    }
+    #quitButton {
+  position: absolute;
+  top: 97%;
+  left: 5%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: 'SWScrps', serif;
+  font-size: 20px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 10;
+  pointer-events: none; /* Initially not clickable */
+}
+  </style>
+</head>
+<body>
+<div class="peacock-container" id="peacock">
+  <img src="../images/pee2.png" id="pee2" class="peacock-body">
+  <svg id="text-feathers" viewBox="0 0 800 800"></svg>
+</div>
+<a id="quitButton" href="../index.html">QUIT</a>
+<script>
+  /**
+   * 画像の羽根の1レイヤーをセットアップし、アニメーションを開始する関数を返す
+   * @param {HTMLElement} container - 羽根を追加するコンテナ要素
+   * @param {string} wingImage - 羽根の画像パス
+   * @param {string} wingClass - 適用するCSSクラス名
+   * @param {number} totalWings - このレイヤーの羽根の枚数
+   * @param {number} spreadAngle - 羽根が広がる全体の角度
+   * @param {number} zIndexBase - このレイヤーのz-indexの基準値
+   * @returns {Function} このレイヤーのアニメーションを開始する関数
+   */
+  function setupWingLayer(container, wingImage, wingClass, totalWings, spreadAngle, zIndexBase) {
+    const wings = [];
+    for (let i = 0; i < totalWings; i++) {
+      const wing = document.createElement('img');
+      wing.src = wingImage;
+      wing.classList.add(wingClass);
+      wing.style.transform = 'translate(-50%, -50%)';
+
+      const midPoint = (totalWings - 1) / 2;
+      const zIndex = zIndexBase + Math.round(midPoint - Math.abs(i - midPoint));
+      wing.style.zIndex = zIndex;
+
+      wings.push(wing);
+      container.appendChild(wing);
+    }
+
+    return function animate() {
+      const angleStep = spreadAngle / (totalWings - 1);
+      const startAngle = -spreadAngle / 2;
+
+      wings.forEach((wing, i) => {
+        const finalAngle = startAngle + i * angleStep;
+        setTimeout(() => {
+          wing.style.transform = `translate(-50%, -50%) rotate(${finalAngle}deg)`;
+        }, i * 50);
+      });
+    };
+  }
+
+  /**
+   * SVGテキストの羽根をセットアップし、アニメーションを開始する関数を返す
+   * @param {HTMLElement} svgElement - テキストを追加するSVG要素
+   * @returns {Function} アニメーションを開始する関数
+   */
+  function setupTextFeathers(svgElement) {
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const centerX = 400;
+    const centerY = 520;
+
+    const chars = "ACEGJLOPQRW*･!\\$%&".split('');
+    const countPerChar = 30;
+    const totalParticles = chars.length * countPerChar;
+    const arcCount = 15;
+    const angleRange = Math.PI * 1.1;
+    const startAngle = -angleRange / 2 - Math.PI / 2;
+    const minRadius = 120;
+    const maxRadius = 350;
+
+    const particles = [];
+
+    for (let i = 0; i < totalParticles; i++) {
+      const arcIndex = i % arcCount;
+      const radius = minRadius + (maxRadius - minRadius) * (arcIndex / (arcCount - 1));
+
+      const pointInArc = Math.floor(i / arcCount);
+      const totalPointsInArc = Math.ceil(totalParticles / arcCount);
+      const angle = startAngle + angleRange * (pointInArc / totalPointsInArc);
+
+      const textEl = document.createElementNS(SVG_NS, 'text');
+      textEl.textContent = chars[i % chars.length];
+
+      // CSS変数として座標を設定
+      const startX = centerX + (Math.random() - 0.5) * 80;
+      const startY = centerY + (Math.random() - 0.5) * 80;
+      const targetX = centerX + Math.cos(angle) * radius;
+      const targetY = centerY + Math.sin(angle) * radius;
+
+      // SVG要素はtransformで動かすため、基準座標は(0,0)にしておく
+      textEl.setAttribute('x', 0);
+      textEl.setAttribute('y', 0);
+      
+      // CSSカスタムプロパティに開始・終了座標をセット
+      textEl.style.setProperty('--start-x', `${startX}px`);
+      textEl.style.setProperty('--start-y', `${startY}px`);
+      textEl.style.setProperty('--target-x', `${targetX}px`);
+      textEl.style.setProperty('--target-y', `${targetY}px`);
+      
+      // 初期状態では開始位置に配置
+      textEl.style.transform = `translate(${startX}px, ${startY}px)`;
+
+      svgElement.appendChild(textEl);
+      particles.push(textEl);
+    }
+
+    return function animate() {
+      particles.forEach((el, i) => {
+        // 各要素に少しずつ遅延をつけてアニメーションクラスを付与
+        const delay = Math.random() * 1500; // 0〜1.5秒の遅延
+        setTimeout(() => {
+          el.classList.add('text-feather-animate');
+        }, delay);
+      });
+    };
+  }
+
+  /**
+   * 浮遊するテキストレイヤーをセットアップする
+   * @param {HTMLElement} svgElement - テキストを追加するSVG要素
+   * @param {string[]} chars - 表示する文字の配列
+   */
+  function setupFloatingTextLayer(svgElement, chars) {
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const width = 800;
+    const height = 800;
+
+    chars.forEach(char => {
+      const textEl = document.createElementNS(SVG_NS, 'text');
+      textEl.textContent = char;
+      textEl.classList.add('floating-text', 'hidden'); // 初期状態は非表示
+
+      const setupAnimation = () => {
+        const duration = 15 + Math.random() * 15; // 15-30秒
+        const delay = Math.random() * duration; // 開始タイミングをずらす
+        const startX = Math.random() * width;
+        const startY = Math.random() * height;
+        const endX = Math.random() * width;
+        const endY = Math.random() * height;
+        const maxOpacity = 0.2 + Math.random() * 0.4; // 最大不透明度 (0.2 - 0.6)
+
+        textEl.style.setProperty('--start-x', `${startX}px`);
+        textEl.style.setProperty('--start-y', `${startY}px`);
+        textEl.style.setProperty('--end-x', `${endX}px`);
+        textEl.style.setProperty('--end-y', `${endY}px`);
+        textEl.style.setProperty('--max-opacity', maxOpacity);
+
+        textEl.style.animationDuration = `${duration}s`;
+        textEl.style.animationDelay = `-${delay}s`; // マイナス遅延で初回からランダムな位置で開始
+      };
+
+      // アニメーションが1周するたびに新しい目的地を設定し直す
+      textEl.addEventListener('animationiteration', setupAnimation);
+
+      // 初期設定
+      setupAnimation();
+
+      svgElement.appendChild(textEl);
+    });
+  }
+
+  window.onload = () => {
+    const peacockContainer = document.getElementById('peacock');
+    const svgElement = document.getElementById('text-feathers');
+
+    const animateLayer1 = setupWingLayer(peacockContainer, '../images/peewing1.png', 'wing1', 10, 180, 10);
+    const animateLayer2 = setupWingLayer(peacockContainer, '../images/peewing2.png', 'wing2', 10, 180, 20);
+    const animateLayer3 = setupWingLayer(peacockContainer, '../images/peewing3.png', 'wing3', 10, 180, 30);
+    const animateTextLayer = setupTextFeathers(svgElement);
+
+    // 浮遊させる新しい文字
+    const floatingChars = "ACEGJLOPQRW*･!\\$%&".split('');
+    setupFloatingTextLayer(svgElement, floatingChars);
+
+    setTimeout(() => {
+      animateLayer1();
+      animateLayer2();
+      animateLayer3();
+      setTimeout(animateTextLayer, 1000); // 画像の羽根が開き始めた後にテキストアニメーションを開始
+
+      // 羽根が広がりきったタイミングで浮遊アニメーションを開始 (transition: 1.5s に合わせる)
+      setTimeout(() => {
+        const floatingTexts = document.querySelectorAll('.floating-text');
+        floatingTexts.forEach(el => {
+          el.classList.remove('hidden');
+          el.classList.add('animate');
+        });
+      }, 1500); 
+    }, 500);
+  };
+  // 3秒後にQUITボタンを表示
+  setTimeout(() => {
+    const quitButton = document.getElementById('quitButton');
+    if (quitButton) {
+      quitButton.style.opacity = '1';
+      quitButton.style.pointerEvents = 'auto'; // Make it clickable
+    }
+  }, 3000);
+
+</script>
+
+</body>
+</html>
