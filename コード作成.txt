@@ -1,0 +1,33 @@
+Sub 下書きシート作成_コード自動紐付け()
+    Dim wsSrc As Worksheet: Set wsSrc = Sheets("システム出力")
+    Dim wsTemp As Worksheet: Set wsTemp = Sheets("下書きシート")
+    Dim wsCode As Worksheet: Set wsCode = Sheets("コード表") ' ←コード表シート
+    
+    ' 1. 古いデータをクリア
+    wsTemp.Rows("2:250").ClearContents
+    
+    ' 2. 簡単な情報を左側へ最大200行一括コピー
+    Call 列指定コピー(wsSrc, "日付", wsTemp, "A")
+    Call 列指定コピー(wsSrc, "金額", wsTemp, "B")
+    
+    ' 3. 【名前からコードを自動紐付け（VLOOKUPの処理をマクロで自動化）】
+    ' システム出力の「勘定科目名」や「支払先名」を元に、コード表から自動でコードを引っ張ってきます
+    Dim i As Long
+    For i = 2 To 201
+        ' --- 勘定科目のコード紐付け例 ---
+        Dim kamokuName As String
+        kamokuName = wsSrc.Cells(i, 3).Value ' 例えばシステム出力の3列目が科目名の場合
+        If kamokuName <> "" Then
+            ' コード表（A列が名前、B列がコードと仮定）から探す
+            On Error Resume Next
+            wsTemp.Cells(i, "C").Value = WorksheetFunction.VLookup(kamokuName, wsCode.Range("A:B"), 2, False)
+            On Error GoTo 0
+        End If
+        
+        ' --- 支払先・部門コードの紐付け例 ---
+        ' ここで振込先や支払先名から、部門コードや支払先コードを自動検索して右側の列（E列、F列など）に入れます
+    Next i
+    
+    MsgBox "コード表との紐付けを含めた、下書きシートの作成が完了しました！" & vbCrLf & _
+           "コードが見つからなかった箇所や、確認が必要な支払先をチェックしてください。", vbInformation
+End Sub
